@@ -3,28 +3,31 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches:
-      - master  
-
+      - main  
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v2
+    - name: Checkout
+      uses: actions/checkout@v2
 
-      - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
-        with:
-          dotnet-version: '8.0.203'  # Adjust this to match the .NET version you are using
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '8.0.204'
 
-      - name: Publish
-        run: dotnet publish Entregable8 -c Release -o build
+    - name: Restore dependencies
+      run: dotnet restore
 
-      - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./build/wwwroot
-          publish_branch: gh-pages  # Especifica que el despliegue debe ser en la rama gh-pages
+    - name: Build
+      run: dotnet build --no-restore
 
+    - name: Publish
+      run: dotnet publish --no-restore --configuration Release --output publish
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.DEPLOY_TOKEN }}
+        publish_dir: ./publish/wwwroot
